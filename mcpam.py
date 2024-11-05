@@ -1,5 +1,4 @@
-import updateHandler
-import installHandler
+import operationHandler
 import configHandler
 import plugin
 
@@ -20,7 +19,7 @@ def update(configFile:str="./server.toml"):
     serverConfig=configHandler.getConf(configFile)
 
 
-    toUpdate = updateHandler.getUpdate(plugins=pluginsList,serverType=serverType)
+    toUpdate = operationHandler.getUpdate(plugins=pluginsList,serverType=serverType)
     
     updateConfirmed=False
 
@@ -84,7 +83,7 @@ def update(configFile:str="./server.toml"):
         updateConfirmed=False
 
     if updateConfirmed:
-        updatedServerConfig=updateHandler.applyUpdate(serverConfig, toUpdate)
+        updatedServerConfig=operationHandler.applyUpdate(serverConfig, toUpdate)
         configHandler.setConf(updatedServerConfig, configFile)
 
 
@@ -125,7 +124,7 @@ def install(query:str,configFile:str="./server.toml"):
     serverConfig=configHandler.getConf(configFile)
 
     
-    queryResult=installHandler.getInstall(query,serverType,serverVersion)
+    queryResult=operationHandler.getInstall(query,serverType,serverVersion)
 
     choices=[]
 
@@ -157,30 +156,23 @@ def install(query:str,configFile:str="./server.toml"):
     echo(selectedPlugin["description"]+'\n')
 
     if inquirer.confirm("Should the installation be applied?", default=True):
-        version=updateHandler.getUpdate([{'type':'modrinth' ,'id':selectedPlugin["slug"],'version':''}])
+        version=operationHandler.getUpdate([{'type':'modrinth' ,'id':selectedPlugin["slug"],'version':''}])
         pluginToAdd=plugin.pluginModrinth(selectedPlugin["slug"],version[0][2])
 
-        if installHandler.isDupe(pluginToAdd,serverConfig):
+        if operationHandler.isDupe(pluginToAdd,serverConfig):
             echo("Error, Plugin/Mod already installed!",fg='red')
             echo("Run `update` or `remove` instead.",fg='yellow')
             quit()
 
         updatedConf=configHandler.addPlugin(serverConfig,pluginToAdd)
         configHandler.setConf(updatedConf,configFile)
-    
 
-"""
-@app.command()
-def test(configFile:str="./server.toml"):
-
-    pluginsList=configHandler.getPluginsList(configFile)
-    serverType=configHandler.getServerType(configFile)
-    serverConfig=configHandler.getConf(configFile)
-
-    toUpdate = updateHandler.getUpdate(plugins=pluginsList,serverType=serverType)
-
-    updateHandler.applyUpdate(serverConfig,toUpdate)
-"""
+@app.command(name="r",hidden=True)
+@app.command(name="u",hidden=True)
+@app.command(name="uninstall",hidden=True)
+@app.command(name="remove")
+def remove(pluginName:str,configFile:str="./server.toml"):
+    echo("Under construction",fg='yellow')    
 
 if __name__ == "__main__":
     app()
